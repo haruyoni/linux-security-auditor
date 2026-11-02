@@ -1,3 +1,4 @@
+from cgitb import reset
 from email import message
 import unittest
 from uid0_check import evaluate_uid0
@@ -43,6 +44,23 @@ class TestEvaluateUID0(unittest.TestCase):
         self.assertTrue(
             any(
                 "root 외 UID 0" in message
+                for message in result["evidence"]
+            )
+        )
+
+    def test_invalid_uid_returns_error(self):
+        lines = [
+            "root:x:0:0:root:/root:/bin/bash",
+            "admin:x:abc:1000:Admin:/home/admin:/bin/bash"
+        ]
+
+        result = evaluate_uid0(lines)
+
+        self.assertEqual(result["status"], "ERROR")
+        self.assertEqual(result["accounts"], [])
+        self.assertTrue(
+            any(
+                "UID가 올바르지" in message
                 for message in result["evidence"]
             )
         )
