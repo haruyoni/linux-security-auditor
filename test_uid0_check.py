@@ -64,3 +64,57 @@ class TestEvaluateUID0(unittest.TestCase):
                 for message in result["evidence"]
             )
         )
+
+    # ASCII UID 검증 테스트
+    def test_non_ascii_uid_returns_error(self):
+        lines = [
+            "root:x:٠:0:root:/root:/bin/bash"
+        ]
+
+        result = evaluate_uid0(lines)
+
+        # TODO 1: status가 ERROR인지 확인
+        self.assertEqual(result["status"], "ERROR")
+        # TODO 2: accounts가 빈 리스트인지 확인
+        self.assertEqual(result["accounts"], [])
+        # TODO 3: evidence가 리스트인지 확인
+        self.assertIsInstance(result["evidence"], list)
+        # TODO 4: evidence에 UID 형식 오류가 기록됐는지 확인
+        self.assertTrue(
+            any(
+                "UID가 올바르지" in message
+                for message in result["evidence"]
+            )
+        )
+
+    #subTest() 이용하여 여러 입력값 반복 테스트
+    def test_invalid_uid_boundaries(self):
+        invalid_uids = [
+            "-1",
+            "+0",
+            " 0",
+            "",
+            "１２"
+        ]
+
+        for uid in invalid_uids:
+            with self.subTest(uid=uid):
+                lines = [
+                    f"root:x:{uid}:0:root:/root:/bin/bash"
+                ]
+
+                result = evaluate_uid0(lines)
+
+                # TODO 1: status가 ERROR인지 확인
+                self.assertEqual(result["status"], "ERROR")
+
+                # TODO 2: accounts가 빈 리스트인지 확인
+                self.assertEqual(result["accounts"], [])
+
+                # TODO 3: evidence에 UID 오류 근거가 있는지 확인
+                self.assertTrue(
+                    any(
+                        "UID가 올바르지" in message
+                        for message in result["evidence"]
+                    )
+                )

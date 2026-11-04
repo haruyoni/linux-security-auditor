@@ -10,7 +10,7 @@ def parse_passwd_line(line: str) -> tuple[str, int]:
             raise ValueError("사용자명이 비어있습니다.")
         uid = parts[2]
     # TODO 4: UID를 정수로 변환하고 검증
-        if uid.isdecimal() :
+        if uid.isascii() and uid.isdecimal() :
            return (username, int(uid))
         else :
             raise ValueError(f"UID가 올바르지 않습니다. 현재 UID :{uid}")
