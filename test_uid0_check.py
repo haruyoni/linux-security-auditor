@@ -3,9 +3,15 @@ from email import message
 import unittest
 from uid0_check import evaluate_uid0
 
+import tempfile
+from pathlib import Path
+
+from uid0_check import check_passwd_file
+
 
 class TestEvaluateUID0(unittest.TestCase):
 
+    # 정상적인 root 계정만 존재할 때 NORMAL 반환 테스트
     def test_normal_root(self):
         lines = [
             "root:x:0:0:root:/root:/bin/bash",
@@ -19,6 +25,7 @@ class TestEvaluateUID0(unittest.TestCase):
         self.assertEqual(result["accounts"], [(1, "root")])
 
 
+    # UID 0 계정이 여러 개 존재할 때 REVIEW 반환 테스트
     def test_extra_uid0(self):
         lines = [
             "root:x:0:0:root:/root:/bin/bash",
@@ -48,6 +55,7 @@ class TestEvaluateUID0(unittest.TestCase):
             )
         )
 
+    # UID가 숫자가 아닌 경우 ERROR 반환 테스트
     def test_invalid_uid_returns_error(self):
         lines = [
             "root:x:0:0:root:/root:/bin/bash",
@@ -87,7 +95,7 @@ class TestEvaluateUID0(unittest.TestCase):
             )
         )
 
-    #subTest() 이용하여 여러 입력값 반복 테스트
+    # UID 경계값 검증 테스트(subTest 활용)
     def test_invalid_uid_boundaries(self):
         invalid_uids = [
             "-1",
@@ -118,3 +126,53 @@ class TestEvaluateUID0(unittest.TestCase):
                         for message in result["evidence"]
                     )
                 )
+
+
+class TestCheckPasswdFile(unittest.TestCase):
+
+    # 파일이 존재하지 않을 때 ERROR 반환 테스트
+    def test_missing_file_returns_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "missing_passwd.txt"
+
+            result = check_passwd_file(str(path))
+
+            # TODO 1: status가 ERROR인지 검증
+            self.assertEqual(result["status"], "ERROR")
+
+            # TODO 2: accounts가 []인지 검증
+            self.assertEqual(result["accounts"], [])
+
+            # TODO 3: evidence에 파일 읽기 실패 근거가
+            # 있는지 검증
+            self.assertTrue(
+                any(
+                    "파일 읽기 실패" in message
+                    for message in result["evidence"]
+                )
+            )
+
+    # 파일이 비어있을 때 ERROR 반환 테스트
+    def test_empty_file_returns_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "empty_passwd.txt"
+
+            # TODO 1: 크기가 0바이트인 빈 파일 생성
+            path.touch()
+
+            # TODO 2: check_passwd_file() 실행
+            result = check_passwd_file(str(path))
+
+            # TODO 3: status가 ERROR인지 확인
+            self.assertEqual(result["status"], "ERROR")
+
+            # TODO 4: accounts가 []인지 확인
+            self.assertEqual(result["accounts"], [])
+
+            # TODO 5: evidence에 빈 입력 근거가 있는지 확인
+            self.assertTrue(
+                any(
+                    "데이터가 비어" in message
+                    for message in result["evidence"]
+                )
+            )

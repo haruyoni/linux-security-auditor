@@ -19,10 +19,9 @@ Ubuntu 24.04 LTS, Python 3.12
 ## 테스트
 Python 표준 라이브러리 unittest를 사용합니다.
 
-실행 명령:
-
+```bash
 python3 -m unittest discover -v
-
+```
 검증 결과 (2026-11-04):
 - 5개 테스트 메서드 통과
 - 비ASCII UID 입력 검증 보완
