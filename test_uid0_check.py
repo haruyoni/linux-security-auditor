@@ -176,3 +176,33 @@ class TestCheckPasswdFile(unittest.TestCase):
                     for message in result["evidence"]
                 )
             )
+
+    # 파일이 정상적인 passwd 파일일 때 NORMAL 반환 테스트
+    def test_normal_file_returns_normal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "passwd_normal.txt"
+
+            # TODO 1: path.write_text()로
+            # 정상 passwd 데이터 2줄 저장
+            path.write_text(
+                "root:x:0:0:root:/root:/bin/bash\n"
+                "user:x:1000:1000:User:/home/user:/bin/bash",
+                encoding="utf-8"
+            )
+
+            # TODO 2: check_passwd_file() 실행
+            result = check_passwd_file(str(path))
+
+            # TODO 3: status == "NORMAL" 검증
+            self.assertEqual(result["status"], "NORMAL")
+
+            # TODO 4: accounts == [(1, "root")] 검증
+            self.assertEqual(result["accounts"], [(1, "root")])
+
+            # TODO 5: evidence에 정상 판정 근거 확인
+            self.assertTrue(
+                any(
+                    "root 계정 1개" in message
+                    for message in result["evidence"]
+                )
+            )
